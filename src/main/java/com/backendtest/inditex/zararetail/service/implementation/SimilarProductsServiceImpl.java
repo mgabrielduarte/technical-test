@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.webjars.NotFoundException;
 
 import java.util.*;
 
@@ -45,6 +46,8 @@ public class SimilarProductsServiceImpl implements SimilarProductsService {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            } else {
+                throw new NotFoundException("Product Not found.");
             }
 
         return new SimilarProducts().setItems(similarProductsList);

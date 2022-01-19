@@ -35,11 +35,6 @@ public class SimilarProductsController {
                     content = @Content) })
     @GetMapping("/{productId}/similar")
     public ResponseEntity<?> getSimilarProducts(@Parameter(description = "id of product") @PathVariable String productId) {
-        SimilarProducts similarProducts = similarProductsService.getSimilarProducts(productId);
-        if ( !similarProducts.getItems().isEmpty() ) {
-            return new ResponseEntity<>(similarProducts, HttpStatus.OK);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("{ description: Product Not found }");
-        }
+            return new ResponseEntity<>(similarProductsService.getSimilarProducts(productId), HttpStatus.OK);
     }
 }
