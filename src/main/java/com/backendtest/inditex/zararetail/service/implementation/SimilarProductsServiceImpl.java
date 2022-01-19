@@ -1,8 +1,6 @@
 package com.backendtest.inditex.zararetail.service.implementation;
 
 import com.backendtest.inditex.zararetail.restmodel.ProductDetail;
-import com.backendtest.inditex.zararetail.restmodel.SimilarProduct;
-import com.backendtest.inditex.zararetail.restmodel.SimilarProducts;
 import com.backendtest.inditex.zararetail.service.SimilarProductsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,11 +12,14 @@ import org.webjars.NotFoundException;
 
 import java.util.*;
 
+import static com.backendtest.inditex.zararetail.common.utils.convertArrayToList;
+import static com.backendtest.inditex.zararetail.common.utils.urlBuilder;
+
 @Service
 public class SimilarProductsServiceImpl implements SimilarProductsService {
 
-    /** The logger. */
     public static final Logger logger = LoggerFactory.getLogger(SimilarProductsServiceImpl.class);
+    public static final String NOT_FOUND_MSG = "Product Not found.";
 
     @Autowired
     private RestTemplate restTemplate;
@@ -33,32 +34,28 @@ public class SimilarProductsServiceImpl implements SimilarProductsService {
     private String similarProductUrl;
 
     @Override
-    public SimilarProducts getSimilarProducts(String productId) {
+    public List<ProductDetail> getSimilarProducts(String productId) {
         List<ProductDetail> similarProductsList = new ArrayList<>();
-            SimilarProduct similarProductIds = getSimilarProductIds(productId);
-            if (!similarProductIds.getItems().isEmpty()) {
+        List<String> similarProductIds = getSimilarProductIds(productId);
+        if (!similarProductIds.isEmpty()) {
+            similarProductIds.parallelStream().forEach(item -> {
                 try {
-                    similarProductIds.getItems().parallelStream().forEach(item -> {
-                        ProductDetail productDetail = getProductDetail(item);
-                        similarProductsList.add(productDetail);
-                    });
-
+                    ProductDetail productDetail = getProductDetail(item);
+                    similarProductsList.add(productDetail);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    throw new NotFoundException(NOT_FOUND_MSG);
                 }
-            } else {
-                throw new NotFoundException("Product Not found.");
-            }
-
-        return new SimilarProducts().setItems(similarProductsList);
+            });
+        }
+        return similarProductsList;
     }
 
-    private SimilarProduct getSimilarProductIds(String productId) {
+    private List<String> getSimilarProductIds(String productId) {
         String similarIdsRequestUrl = urlBuilder(url, similarIdUrl);
         Map<String, String> map = new HashMap<>();
         map.put("productId", productId);
-
-        return restTemplate.getForObject(similarIdsRequestUrl, SimilarProduct.class, map);
+        String[] result = restTemplate.getForObject(similarIdsRequestUrl, String[].class, map);
+        return convertArrayToList(result);
     }
 
     private ProductDetail getProductDetail(String productId) {
@@ -67,9 +64,5 @@ public class SimilarProductsServiceImpl implements SimilarProductsService {
         map.put("productId", productId);
 
         return restTemplate.getForObject(similarProductRequestUrl, ProductDetail.class, map);
-    }
-
-    private String urlBuilder(String url, String endpoint) {
-        return new StringBuilder().append(url).append(endpoint).toString();
     }
 }

@@ -7,8 +7,8 @@ public class ProductDetail {
 
     private String id;
     private String name;
-    private String price;
-    private String availability;
+    private float price;
+    private boolean availability;
 
     public ProductDetail() {
     }
@@ -29,19 +29,19 @@ public class ProductDetail {
         this.name = name;
     }
 
-    public String getPrice() {
+    public float getPrice() {
         return price;
     }
 
-    public void setPrice(String price) {
+    public void setPrice(float price) {
         this.price = price;
     }
 
-    public String getAvailability() {
+    public boolean getAvailability() {
         return availability;
     }
 
-    public void setAvailability(String availability) {
+    public void setAvailability(boolean availability) {
         this.availability = availability;
     }
 
