@@ -65,7 +65,7 @@ public class SimilarProductsServiceImpl implements SimilarProductsService {
         String similarIdsRequestUrl = urlBuilder(url, similarIdUrl);
         Map<String, String> map = new HashMap<>();
         map.put("productId", productId);
-        String[] result = restTemplate.getForObject(similarIdsRequestUrl, String[].class, map);
+         String[] result = restTemplate.getForObject(similarIdsRequestUrl, String[].class, map);
 
         return convertArrayToList(result);
     }
