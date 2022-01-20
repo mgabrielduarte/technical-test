@@ -44,7 +44,7 @@ public class SimilarProductsController {
             @ApiResponse(responseCode = "500", description = "There was a problem. Please try again later.",
                     content = @Content)})
     @GetMapping("/{productId}/similar")
-    public ResponseEntity<?> getSimilarProducts(@Parameter(description = "id of product") @PathVariable String productId) {
-            return new ResponseEntity<>(similarProductsService.getSimilarProducts(productId), HttpStatus.OK);
+    public Flux<ProductDetail> getSimilarProducts(@Parameter(description = "id of product") @PathVariable String productId) {
+            return similarProductsService.getSimilarProducts(productId);
     }
 }

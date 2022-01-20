@@ -8,11 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.webjars.NotFoundException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import static com.backendtest.inditex.zararetail.common.utils.convertArrayToList;
 import static com.backendtest.inditex.zararetail.common.utils.urlBuilder;
@@ -35,29 +36,24 @@ public class SimilarProductsServiceImpl implements SimilarProductsService {
     @Value("${platform.similarProduct}")
     private String similarProductUrl;
 
+    private WebClient webClient = WebClient.create(url);
+
     @Override
-    public List<ProductDetail> getSimilarProducts(String productId) {
-        List<ProductDetail> similarProductsList = new ArrayList<>();
+    public Flux<ProductDetail> getSimilarProducts(String productId) {
+        Flux<ProductDetail> similarProductsList = null;
         List<String> similarProductIds = getSimilarProductIds(productId);
         if (!similarProductIds.isEmpty()) {
             try {
-                List<CompletableFuture<ProductDetail>> futures = similarProductIds.stream()
-                    .map(item -> {
-                        return CompletableFuture.supplyAsync(() -> {
-                            return getProductDetail(item);
-                        });
-                    })
-                    .collect(Collectors.toList());
-
-            similarProductsList = futures.stream()
-                    .map(CompletableFuture::join)
-                    .collect(Collectors.toList());
+                logger.info("RETORNO POR EL FETCH");
+                return fetchUsers(similarProductIds);
             } catch (Exception e) {
                 logger.error(e.getMessage());
                 throw new NotFoundException(NOT_FOUND_MSG);
             }
         }
-        return similarProductsList;
+//        return similarProductsList;
+        logger.info("RETORNO NULL");
+        return null;
     }
 
     private List<String> getSimilarProductIds(String productId) {
@@ -69,11 +65,20 @@ public class SimilarProductsServiceImpl implements SimilarProductsService {
         return convertArrayToList(result);
     }
 
-    private ProductDetail getProductDetail(String productId) {
+    private Mono<ProductDetail> getProductDetail(String productId) {
         String similarProductRequestUrl = urlBuilder(url, similarProductUrl);
         Map<String, String> map = new HashMap<>();
         map.put("productId", productId);
+//
+//        return restTemplate.getForObject(similarProductRequestUrl, ProductDetail.class, map);
+        return webClient.get()
+                .uri(similarProductRequestUrl, productId)
+                .retrieve()
+                .bodyToMono(ProductDetail.class);
+    }
 
-        return restTemplate.getForObject(similarProductRequestUrl, ProductDetail.class, map);
+    public Flux<ProductDetail> fetchUsers(List<String> productIds) {
+        return Flux.fromIterable(productIds)
+                .flatMap(this::getProductDetail);
     }
 }
