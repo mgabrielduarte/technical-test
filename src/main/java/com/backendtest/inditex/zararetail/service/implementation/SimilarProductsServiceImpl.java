@@ -11,6 +11,10 @@ import org.springframework.web.client.RestTemplate;
 import org.webjars.NotFoundException;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static com.backendtest.inditex.zararetail.common.utils.convertArrayToList;
 import static com.backendtest.inditex.zararetail.common.utils.urlBuilder;
@@ -38,14 +42,21 @@ public class SimilarProductsServiceImpl implements SimilarProductsService {
         List<ProductDetail> similarProductsList = new ArrayList<>();
         List<String> similarProductIds = getSimilarProductIds(productId);
         if (!similarProductIds.isEmpty()) {
-            similarProductIds.parallelStream().forEach(item -> {
-                try {
-                    ProductDetail productDetail = getProductDetail(item);
-                    similarProductsList.add(productDetail);
-                } catch (Exception e) {
-                    throw new NotFoundException(NOT_FOUND_MSG);
-                }
-            });
+            try {
+                List<CompletableFuture<ProductDetail>> futures = similarProductIds.stream()
+                    .map(item -> {
+                        return CompletableFuture.supplyAsync(() -> {
+                            return getProductDetail(item);
+                        });
+                    })
+                    .collect(Collectors.toList());
+
+            similarProductsList = futures.stream()
+                    .map(CompletableFuture::join)
+                    .collect(Collectors.toList());
+            } catch (Exception e) {
+                throw new NotFoundException(NOT_FOUND_MSG);
+            }
         }
         return similarProductsList;
     }
@@ -55,6 +66,7 @@ public class SimilarProductsServiceImpl implements SimilarProductsService {
         Map<String, String> map = new HashMap<>();
         map.put("productId", productId);
         String[] result = restTemplate.getForObject(similarIdsRequestUrl, String[].class, map);
+
         return convertArrayToList(result);
     }
 
