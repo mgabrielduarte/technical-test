@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -43,7 +44,7 @@ public class SimilarProductsController {
             @ApiResponse(responseCode = "500", description = "There was a problem. Please try again later.",
                     content = @Content)})
     @GetMapping("/{productId}/similar")
-    public ResponseEntity<List<ProductDetail>> getSimilarProducts(@Parameter(description = "id of product") @PathVariable String productId) {
+    public ResponseEntity<?> getSimilarProducts(@Parameter(description = "id of product") @PathVariable String productId) {
             return new ResponseEntity<>(similarProductsService.getSimilarProducts(productId), HttpStatus.OK);
     }
 }
