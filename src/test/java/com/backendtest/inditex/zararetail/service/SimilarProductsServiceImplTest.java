@@ -87,7 +87,6 @@ public class SimilarProductsServiceImplTest {
         when(restTemplate.getForObject("http://localhost:3001/product/{productId}", ProductDetail.class, map3))
                 .thenThrow(NotFoundException.class);
 
-//        List<ProductDetail> productDetailList = similarProductsService.getSimilarProducts("1");
         assertThrows(NotFoundException.class, () ->similarProductsService.getSimilarProducts("1"));
     }
 
