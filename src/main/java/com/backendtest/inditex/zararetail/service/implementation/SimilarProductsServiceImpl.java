@@ -12,8 +12,6 @@ import org.webjars.NotFoundException;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static com.backendtest.inditex.zararetail.common.utils.convertArrayToList;
@@ -55,6 +53,7 @@ public class SimilarProductsServiceImpl implements SimilarProductsService {
                     .map(CompletableFuture::join)
                     .collect(Collectors.toList());
             } catch (Exception e) {
+                logger.error(e.getMessage());
                 throw new NotFoundException(NOT_FOUND_MSG);
             }
         }
